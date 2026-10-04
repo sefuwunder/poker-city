@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <link rel="icon" href="data:," />
+  <title>Poker × City</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Newsreader:opsz,wght@6..72,500;6..72,700&display=swap');
+    :root{
+      color-scheme: light dark;
+      --paper:#f4f0e5;--ink:#1d2a25;--muted:#637068;--line:#b9b8aa;
+      --felt:#195843;--felt-deep:#0f4031;--felt-line:#3a735e;--gold:#d8a631;
+      --red:#b73730;--black:#17241f;--panel:#fffdf6;--shadow:#18302622;
+      --water:#7eb6b6;--grass:#b8c88d;--grass2:#aabd80;--road:#d4c29b;
+      --focus:#0b6e52;
+    }
+    @media(prefers-color-scheme:dark){
+      :root{--paper:#111916;--ink:#e8eadf;--muted:#aab6ae;--line:#3b4b44;--panel:#19231f;--shadow:#0008;--felt:#164b39;--felt-deep:#0d3529;--gold:#e0b74d;--red:#eb746c;--black:#e8eadf;--grass:#667c51;--grass2:#596f47;--road:#8d805f;--water:#427b82;--focus:#6cd5aa}
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--paper);color:var(--ink);font-family:"DM Mono",monospace;min-height:100vh}
+    button{font:inherit;color:inherit}
+    .shell{max-width:1440px;margin:auto;padding:clamp(12px,2vw,28px)}
+    .topline{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:end;margin:3px 0 18px}
+    .topline h1{font:700 clamp(28px,4vw,48px)/.98 "Newsreader",serif;margin:0;letter-spacing:-.025em;max-width:720px}
+    .topline h1 span{color:var(--felt)}
+    .roundmark{font-size:12px;color:var(--muted);text-align:right;white-space:nowrap}
+    .roundmark b{display:block;color:var(--ink);font:700 24px/1 "Newsreader",serif}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);background:var(--panel);box-shadow:3px 3px 0 var(--line);margin-bottom:16px}
+    .stat{padding:10px 14px;border-right:1px solid var(--line);min-width:0}.stat:last-child{border:0}
+    .stat small{display:block;color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.13em;margin-bottom:4px}
+    .stat strong{font:700 23px/1 "Newsreader",serif}.stat em{font-style:normal;font-size:10px;color:var(--muted);margin-left:4px}
+    .layout{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(360px,.65fr);gap:18px;align-items:start}
+    .map-panel{background:var(--panel);border:1px solid var(--line);box-shadow:4px 4px 0 var(--line);overflow:hidden}
+    .map-head{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:1px solid var(--line)}
+    .map-head h2,.play-head h2{font:700 20px/1 "Newsreader",serif;margin:0}
+    .map-head p{margin:0;color:var(--muted);font-size:10px}
+    .map{position:relative;display:grid;grid-template-columns:repeat(8,1fr);aspect-ratio:8/5.25;background:var(--grass);overflow:hidden;isolation:isolate}
+    .tile{position:relative;min-width:0;border-right:1px solid #253d2720;border-bottom:1px solid #253d2720;background:var(--grass)}
+    .tile:nth-child(3n+1){background:var(--grass2)}
+    .tile.road{background:var(--road)}.tile.water{background:var(--water)}
+    .tile.water::after{content:"";position:absolute;inset:18% 8%;border-top:1px solid #e0f2e577;border-bottom:1px solid #e0f2e544;transform:skewY(-5deg)}
+    .lot{position:absolute;inset:8%;display:flex;align-items:center;justify-content:center;filter:drop-shadow(1px 2px 0 #26362c55);animation:land .42s cubic-bezier(.2,.9,.2,1)}
+    @keyframes land{from{transform:scale(.4) translateY(-20px);opacity:0}to{transform:none;opacity:1}}
+    .bldg{position:relative;width:72%;height:58%;background:var(--b);border:2px solid #24342c;border-radius:1px 1px 2px 2px}
+    .bldg:before{content:"";position:absolute;left:-15%;right:-15%;height:45%;top:-37%;background:var(--roof);clip-path:polygon(50% 0,100% 100%,0 100%);border-bottom:2px solid #24342c}
+    .bldg:after{content:"";position:absolute;width:22%;height:38%;bottom:0;left:39%;background:#4e3b2a;border:1px solid #25342d}
+    .lot.market .bldg{--b:#e4b94f;--roof:#9f422f}.lot.hearth .bldg{--b:#e3d4b1;--roof:#b65f3f}.lot.works .bldg{--b:#9aa68d;--roof:#4c5c56}.lot.harbor .bldg{--b:#acd2d1;--roof:#356579}
+    .lot.rare .bldg{height:67%;width:78%}.lot.rare .bldg:before{top:-29%;height:36%;clip-path:polygon(0 28%,25% 0,50% 28%,75% 0,100% 28%,100% 100%,0 100%)}
+    .lot.wonder .bldg{height:72%;width:78%;background:var(--gold)}.lot.wonder .bldg:before{background:#213e39;clip-path:polygon(50% 0,62% 50%,100% 50%,100% 100%,0 100%,0 50%,38% 50%)}
+    .lot.waterlot .bldg{transform:translateY(-4px)}.lot.waterlot:after{content:"";position:absolute;left:10%;right:10%;bottom:4%;height:5px;background:#624c35;border:1px solid #26362c}
+    .tag{position:absolute;left:50%;bottom:-2px;transform:translate(-50%,100%);background:#11261eea;color:#fff;padding:2px 4px;font-size:7px;line-height:1.1;white-space:nowrap;max-width:94px;overflow:hidden;text-overflow:ellipsis;z-index:3}
+    .map-empty{position:absolute;z-index:5;left:50%;top:42%;transform:translate(-50%,-50%);background:var(--panel);border:1px solid var(--ink);box-shadow:3px 3px 0 var(--ink);padding:10px 14px;text-align:center;pointer-events:none;font:700 14px/1.2 "Newsreader",serif}.map-empty small{display:block;font:400 9px/1.4 "DM Mono",monospace;color:var(--muted);margin-top:4px}
+    .district-key{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line)}
+    .key{padding:9px 10px;border-right:1px solid var(--line);font-size:9px}.key:last-child{border:0}.key b{display:block;font-size:11px;margin-bottom:2px}.key span{color:var(--muted)}
+    .play{background:var(--felt);color:#f8f4e9;border:1px solid #0b3428;box-shadow:4px 4px 0 #0b3428;min-height:100%}
+    .play-head{display:flex;align-items:flex-start;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--felt-line)}
+    .play-head h2{color:white}.play-head p{font-size:9px;color:#b9d6c9;margin:4px 0 0;line-height:1.45}
+    .icon-btn{border:1px solid var(--felt-line);background:transparent;color:#e9f3ed;width:31px;height:31px;cursor:pointer;border-radius:50%;font-size:15px}.icon-btn:hover{background:#ffffff12}
+    .table{padding:15px 16px 16px}
+    .phase-label{display:flex;justify-content:space-between;align-items:center;font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:#c6ddd2;margin-bottom:10px}.phase-label b{color:var(--gold)}
+    .hand{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-bottom:12px}
+    .card{aspect-ratio:2.5/3.55;background:#fffdf6;color:#17241f;border:1px solid #0a2e24;border-radius:6px;box-shadow:2px 3px 0 #0b3529;position:relative;padding:6px;cursor:pointer;transition:transform .15s,box-shadow .15s;user-select:none;min-width:0}
+    .card.red{color:#b32f2b}.card:hover{transform:translateY(-2px)}.card.held{transform:translateY(-7px);box-shadow:0 10px 0 #d4a72d,2px 12px 0 #0b3529}.card:focus-visible{outline:3px solid #f1cc64;outline-offset:2px}
+    .rank{font:700 clamp(16px,2.5vw,25px)/1 "Newsreader",serif}.suit{font:500 clamp(14px,2vw,21px)/1 serif}.pip{position:absolute;inset:0;display:grid;place-items:center;font:700 clamp(25px,4vw,42px)/1 serif}.corner{position:absolute;right:5px;bottom:4px;transform:rotate(180deg);font:700 10px/1 "Newsreader",serif}
+    .holdnote{text-align:center;color:#bdd5ca;font-size:8px;min-height:12px;margin-bottom:8px}
+    .districts{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:12px}
+    .district{background:#0f4434;border:1px solid var(--felt-line);color:#d9e8e0;padding:7px 3px;cursor:pointer;font-size:9px;text-align:center;border-radius:2px}.district b{display:block;color:white;font-size:15px;font-family:serif;margin-bottom:2px}.district.active{background:var(--gold);border-color:#f0cf75;color:#2c2b20}.district.active b{color:#2c2b20}
+    .action{display:grid;grid-template-columns:1fr auto;gap:7px}.primary,.secondary{border:1px solid #0a2d23;padding:11px 13px;cursor:pointer;font-weight:500}.primary{background:var(--gold);color:#25271f;box-shadow:2px 2px 0 #08251d}.primary:hover{background:#e8bc52}.primary:disabled{opacity:.45;cursor:not-allowed}.secondary{background:#123c30;color:#e8f2ed;border-color:var(--felt-line)}
+    .result{border-top:1px solid var(--felt-line);padding:14px 16px;min-height:105px;background:#103f31}
+    .result h3{font:700 22px/1 "Newsreader",serif;margin:0 0 6px;color:#fff}.result p{margin:0;color:#c2d9ce;font-size:10px;line-height:1.5}.result .gain{color:#f1cd69}.result.empty h3{font-size:17px;color:#d7e5de}.result.empty p{max-width:350px}
+    .ledger{margin-top:18px;border:1px solid var(--line);background:var(--panel)}
+    .ledger-head{display:flex;justify-content:space-between;padding:10px 13px;border-bottom:1px solid var(--line)}.ledger-head h2{font:700 18px/1 "Newsreader",serif;margin:0}.ledger-head button{border:0;background:none;color:var(--focus);cursor:pointer;font-size:10px}
+    .log{display:grid;grid-template-columns:repeat(3,1fr)}.logitem{padding:10px 12px;border-right:1px solid var(--line);min-height:58px}.logitem:last-child{border:0}.logitem small{display:block;color:var(--muted);font-size:8px;margin-bottom:3px}.logitem b{font:700 14px/1.15 "Newsreader",serif;display:block}.logitem span{font-size:8px;color:var(--muted)}
+    dialog{border:1px solid var(--ink);background:var(--panel);color:var(--ink);box-shadow:8px 8px 0 var(--ink);width:min(620px,calc(100% - 28px));max-height:85vh;padding:0}dialog::backdrop{background:#0d1c17aa}.modal-head{display:flex;justify-content:space-between;align-items:center;padding:15px 18px;border-bottom:1px solid var(--line)}.modal-head h2{font:700 25px/1 "Newsreader",serif;margin:0}.close{border:0;background:none;font-size:22px;cursor:pointer}.modal-body{padding:18px;overflow:auto;max-height:70vh}.modal-body>p{font-size:11px;line-height:1.55;color:var(--muted);margin-top:0}.rules{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line)}.rule{background:var(--panel);padding:10px}.rule b{font:700 15px/1 "Newsreader",serif}.rule span{display:block;font-size:9px;color:var(--muted);margin-top:4px;line-height:1.4}
+    .end-score{text-align:center;padding:8px 0 18px}.end-score strong{display:block;font:700 62px/.9 "Newsreader",serif;color:var(--felt)}.end-score span{font-size:10px;color:var(--muted)}.end-score h3{font:700 25px/1 "Newsreader",serif;margin:12px 0 5px}
+    @media(max-width:900px){.layout{grid-template-columns:1fr}.map{aspect-ratio:8/5}.play{min-height:0}.ledger{margin-top:16px}}
+    @media(max-width:560px){.shell{padding:10px}.topline{align-items:start;margin-bottom:12px}.topline h1{font-size:30px}.roundmark b{font-size:19px}.stats{grid-template-columns:repeat(2,1fr)}.stat:nth-child(2){border-right:0}.stat:nth-child(-n+2){border-bottom:1px solid var(--line)}.stat strong{font-size:20px}.map-head p{display:none}.map{aspect-ratio:8/6.2}.district-key{grid-template-columns:repeat(2,1fr)}.key:nth-child(2){border-right:0}.key:nth-child(-n+2){border-bottom:1px solid var(--line)}.tag{display:none}.hand{gap:4px}.card{padding:4px;border-radius:4px}.rank{font-size:17px}.pip{font-size:28px}.districts{gap:4px}.district{font-size:8px;padding:6px 1px}.action{grid-template-columns:1fr}.secondary{order:2}.log{grid-template-columns:1fr}.logitem{border-right:0;border-bottom:1px solid var(--line);min-height:0}.logitem:last-child{border-bottom:0}.rules{grid-template-columns:1fr}}
+    @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topline">
+      <h1>Build a town, <span>one hand at a time.</span></h1>
+      <div class="roundmark">HAND <b><span id="round">1</span> / 12</b></div>
+    </header>
+
+    <section class="stats" aria-label="Town status">
+      <div class="stat"><small>Prosperity</small><strong id="prosperity">0</strong><em>renown</em></div>
+      <div class="stat"><small>Townsfolk</small><strong id="people">18</strong><em>people</em></div>
+      <div class="stat"><small>Treasury</small><strong id="coins">24</strong><em>coins</em></div>
+      <div class="stat"><small>Town class</small><strong id="class">Hamlet</strong></div>
+    </section>
+
+    <div class="layout">
+      <section class="map-panel" aria-label="Town map">
+        <div class="map-head"><h2>Riverbend valley</h2><p id="mapNote">Choose a district, then make your draw.</p></div>
+        <div class="map" id="map" aria-label="An eight by five town map"></div>
+        <div class="district-key">
+          <div class="key"><b style="color:var(--red)">♥ Hearth</b><span>homes · food · gardens</span></div>
+          <div class="key"><b style="color:#b48418">♦ Market</b><span>shops · inns · trade</span></div>
+          <div class="key"><b>♣ Works</b><span>mills · craft · rail</span></div>
+          <div class="key"><b style="color:#3a7281">♠ Harbor</b><span>ferries · fish · docks</span></div>
+        </div>
+      </section>
+
+      <section class="play" aria-label="Poker table">
+        <div class="play-head">
+          <div><h2 id="tableTitle">The first deal</h2><p id="tableSub">Tap cards to hold them. Unheld cards will be redrawn.</p></div>
+          <button class="icon-btn" id="help" aria-label="Open rules">?</button>
+        </div>
+        <div class="table">
+          <div class="phase-label"><span id="phase">Planning draw</span><b id="handName">—</b></div>
+          <div class="hand" id="hand" aria-label="Your poker hand"></div>
+          <div class="holdnote" id="holdNote">HOLD ANY CARDS · DRAW UP TO THREE</div>
+          <div class="districts" id="districts" aria-label="Choose a district">
+            <button class="district active" data-d="hearth"><b>♥</b>HEARTH</button>
+            <button class="district" data-d="market"><b>♦</b>MARKET</button>
+            <button class="district" data-d="works"><b>♣</b>WORKS</button>
+            <button class="district" data-d="harbor"><b>♠</b>HARBOR</button>
+          </div>
+          <div class="action">
+            <button class="primary" id="mainAction">DRAW 3 CARDS</button>
+            <button class="secondary" id="quickSettle">KEEP HAND</button>
+          </div>
+        </div>
+        <div class="result empty" id="result" aria-live="polite"><h3>The council awaits.</h3><p>Every poker hand raises a building. Better hands unlock rarer civic architecture and greater prosperity.</p></div>
+      </section>
+    </div>
+
+    <section class="ledger" aria-label="Recent town history">
+      <div class="ledger-head"><h2>Town ledger</h2><button id="restart">NEW VALLEY</button></div>
+      <div class="log" id="log"><div class="logitem"><small>CHARTERED</small><b>Riverbend founded</b><span>18 townsfolk · 24 coins</span></div></div>
+    </section>
+  </main>
+
+  <dialog id="rules">
+    <div class="modal-head"><h2>How the valley grows</h2><button class="close" data-close="rules" aria-label="Close rules">×</button></div>
+    <div class="modal-body">
+      <p>You have twelve hands. Choose a district, hold the cards you like, and draw up to three. The completed hand becomes a building. Suits feed their matching district; your chosen district breaks ties.</p>
+      <div class="rules">
+        <div class="rule"><b>High card → Homestead</b><span>+1 renown · a modest start</span></div>
+        <div class="rule"><b>Pair → Local business</b><span>+3 renown · bakery, chandlery, shop or kiln</span></div>
+        <div class="rule"><b>Two pair → Town block</b><span>+6 renown · rowhouses and active streets</span></div>
+        <div class="rule"><b>Three of a kind → Guildhall</b><span>+10 renown · a specialist institution</span></div>
+        <div class="rule"><b>Straight → Station</b><span>+15 renown · roads connect the valley</span></div>
+        <div class="rule"><b>Flush → District hall</b><span>+22 renown · one district flourishes</span></div>
+        <div class="rule"><b>Full house → Grand hotel</b><span>+30 renown · a destination appears</span></div>
+        <div class="rule"><b>Four of a kind → Playhouse</b><span>+42 renown · rare civic architecture</span></div>
+        <div class="rule"><b>Straight flush → Wonder</b><span>+65 renown · the valley's defining landmark</span></div>
+        <div class="rule"><b>Suit economy</b><span>Hearts bring people, diamonds bring coins, clubs improve both, spades flourish on water.</span></div>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="ending">
+    <div class="modal-head"><h2>Charter complete</h2><button class="close" data-close="ending" aria-label="Close results">×</button></div>
+    <div class="modal-body"><div class="end-score"><span>FINAL RENOWN</span><strong id="finalScore">0</strong><h3 id="finalTitle">A promising borough</h3><p id="finalText"></p></div><button class="primary" id="playAgain" style="width:100%">FOUND ANOTHER VALLEY</button></div>
+  </dialog>
+
+<script>
+(function(){
+  'use strict';
+  var suits=[{id:'hearth',sym:'♥',red:true},{id:'market',sym:'♦',red:true},{id:'works',sym:'♣',red:false},{id:'harbor',sym:'♠',red:false}];
+  var rankNames=['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+  var state={round:1,prosperity:0,people:18,coins:24,hand:[],held:[false,false,false,false,false],drawn:false,district:'hearth',buildings:[],logs:[]};
+  var deck=[];
+  var mapEl=document.getElementById('map'), handEl=document.getElementById('hand');
+  var buildingNames={
+    hearth:['Kitchen garden','Cedar cottage','Corner bakery','Rowhouses','Midwife’s guild','Garden station','Hearth hall','Grand boarding house','Assembly theatre','Sun court'],
+    market:['Market garden','Tea shop','Covered arcade','Merchant row','Clockmakers’ guild','Exchange station','Market hall','Grand hotel','Opera house','Golden exchange'],
+    works:['Orchard plot','Pottery kiln','Blacksmith','Workers’ court','Artisans’ guild','Freight station','Foundry hall','Railway hotel','Civic playhouse','Great glassworks'],
+    harbor:['Reed garden','Ferry house','Chandlery','Stilt quarter','Boatwright guild','River station','Harbor hall','Waterside hotel','Floating theatre','Tide pavilion']
+  };
+  var handKinds=[
+    {key:'high',name:'High card',score:1,tier:0},
+    {key:'pair',name:'One pair',score:3,tier:1},
+    {key:'two',name:'Two pair',score:6,tier:2},
+    {key:'three',name:'Three of a kind',score:10,tier:4},
+    {key:'straight',name:'Straight',score:15,tier:5},
+    {key:'flush',name:'Flush',score:22,tier:6},
+    {key:'full',name:'Full house',score:30,tier:7},
+    {key:'four',name:'Four of a kind',score:42,tier:8},
+    {key:'straightflush',name:'Straight flush',score:65,tier:9}
+  ];
+  function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+  function freshDeck(){deck=[];for(var s=0;s<4;s++)for(var r=0;r<13;r++)deck.push({s:s,r:r});shuffle(deck)}
+  function take(){if(!deck.length)freshDeck();return deck.pop()}
+  function evaluate(cards){
+    var counts={},sc={}; cards.forEach(function(c){counts[c.r]=(counts[c.r]||0)+1;sc[c.s]=(sc[c.s]||0)+1});
+    var vals=Object.keys(counts).map(Number).sort(function(a,b){return a-b}), groups=Object.values(counts).sort(function(a,b){return b-a});
+    var flush=Object.values(sc).some(function(n){return n===5});
+    var straight=vals.length===5&&(vals[4]-vals[0]===4||(vals.join(',')==='0,1,2,3,12'));
+    var key='high'; if(straight&&flush)key='straightflush';else if(groups[0]===4)key='four';else if(groups[0]===3&&groups[1]===2)key='full';else if(flush)key='flush';else if(straight)key='straight';else if(groups[0]===3)key='three';else if(groups[0]===2&&groups[1]===2)key='two';else if(groups[0]===2)key='pair';
+    return handKinds.find(function(h){return h.key===key})
+  }
+  function dominantSuit(){var c=[0,0,0,0];state.hand.forEach(function(x){c[x.s]++});var max=Math.max.apply(null,c), inds=[];c.forEach(function(n,i){if(n===max)inds.push(i)});var preferred=suits.findIndex(function(s){return s.id===state.district});return inds.indexOf(preferred)>=0?preferred:inds[0]}
+  function renderHand(){
+    handEl.innerHTML='';state.hand.forEach(function(c,i){var suit=suits[c.s],b=document.createElement('button');b.className='card'+(suit.red?' red':'')+(state.held[i]?' held':'');b.setAttribute('aria-label',rankNames[c.r]+' of '+suit.id+(state.held[i]?', held':''));b.setAttribute('aria-pressed',state.held[i]?'true':'false');b.disabled=state.drawn;b.innerHTML='<span class="rank">'+rankNames[c.r]+'</span><span class="suit">'+suit.sym+'</span><span class="pip">'+suit.sym+'</span><span class="corner">'+rankNames[c.r]+' '+suit.sym+'</span>';b.addEventListener('click',function(){if(state.drawn)return;state.held[i]=!state.held[i];renderHand();updateButtons()});handEl.appendChild(b)});
+    document.getElementById('handName').textContent=evaluate(state.hand).name;
+  }
+  function updateButtons(){var unheld=state.held.filter(function(x){return !x}).length;document.getElementById('mainAction').textContent=state.drawn?'SETTLE '+evaluate(state.hand).name.toUpperCase():'DRAW '+Math.min(3,unheld)+' CARD'+(Math.min(3,unheld)===1?'':'S');document.getElementById('quickSettle').style.display=state.drawn?'none':'block';document.getElementById('holdNote').textContent=state.drawn?'FINAL HAND · READY TO SETTLE':(state.held.filter(Boolean).length+' HELD · '+Math.min(3,unheld)+' WILL DRAW')}
+  function drawCards(){
+    var replaced=0;for(var i=0;i<5;i++){if(!state.held[i]&&replaced<3){state.hand[i]=take();replaced++}}
+    state.drawn=true;document.getElementById('phase').textContent='Final hand';document.getElementById('tableTitle').textContent='The river card turns';document.getElementById('tableSub').textContent='Your completed hand is ready to shape the town.';renderHand();updateButtons()
+  }
+  function districtBonus(suitIndex){var n=state.hand.filter(function(c){return c.s===suitIndex}).length;return Math.max(1,n)}
+  function getOpenTile(district){
+    var preferred={hearth:[9,10,17,18,1,2,8,16,25,26],market:[12,13,20,21,4,5,11,19,28,29],works:[33,34,35,27,36,24,3,6,30,31],harbor:[41,42,43,44,45,46,47,40,39,38]}[district];
+    for(var i=0;i<preferred.length;i++)if(!state.buildings.some(function(b){return b.tile===preferred[i]}))return preferred[i];
+    for(var x=0;x<48;x++)if(![14,15,22,23,30,31].includes(x)&&!state.buildings.some(function(b){return b.tile===x}))return x;return Math.floor(Math.random()*48)
+  }
+  function settle(){
+    var kind=evaluate(state.hand),si=dominantSuit(),district=suits[si].id,bonus=districtBonus(si),tier=kind.tier;
+    var gain=kind.score+bonus, pop= district==='hearth'?3+bonus:district==='works'?2:1, coin=district==='market'?3+bonus:district==='works'?2:1;
+    if(kind.key==='full'||kind.key==='four'||kind.key==='straightflush'){pop+=3;coin+=3}
+    state.prosperity+=gain;state.people+=pop;state.coins+=coin;
+    var name=buildingNames[district][tier];var tile=getOpenTile(district);var isWater=tile>=40;
+    state.buildings.push({district:district,name:name,tile:tile,rare:tier>=6,wonder:tier===9,water:isWater});
+    state.logs.unshift({round:state.round,hand:kind.name,name:name,gain:gain});state.logs=state.logs.slice(0,3);
+    var res=document.getElementById('result');res.className='result';res.innerHTML='<h3>'+name+'</h3><p><span class="gain">+'+gain+' renown · +'+pop+' people · +'+coin+' coins</span><br>'+kind.name+' favored the '+district+' district'+(isWater?' along the waterline.':'.')+'</p>';
+    renderMap();renderStats();renderLog();
+    if(state.round>=12){setTimeout(showEnding,500);return}
+    state.round++;newHand()
+  }
+  function newHand(){state.hand=[take(),take(),take(),take(),take()];state.held=[false,false,false,false,false];state.drawn=false;document.getElementById('round').textContent=state.round;document.getElementById('phase').textContent='Planning draw';document.getElementById('tableTitle').textContent=state.round<5?'A new deal':state.round<9?'The town takes shape':'The final quarter';document.getElementById('tableSub').textContent='Tap cards to hold them. Unheld cards will be redrawn.';renderHand();updateButtons()}
+  function renderStats(){document.getElementById('prosperity').textContent=state.prosperity;document.getElementById('people').textContent=state.people;document.getElementById('coins').textContent=state.coins;var c=state.prosperity>=170?'City':state.prosperity>=100?'Borough':state.prosperity>=45?'Town':'Hamlet';document.getElementById('class').textContent=c;document.getElementById('mapNote').textContent=state.buildings.length+' of 12 lots settled · '+c}
+  function renderMap(){
+    mapEl.innerHTML='';for(var i=0;i<48;i++){var t=document.createElement('div');var water=i>=40,road=(i%8===3||i%8===4||i>=24&&i<32);t.className='tile'+(water?' water':road?' road':'');mapEl.appendChild(t)}
+    if(!state.buildings.length){var e=document.createElement('div');e.className='map-empty';e.innerHTML='An open charter<small>Your first hand raises the first roof.</small>';mapEl.appendChild(e)}
+    state.buildings.forEach(function(x){var lot=document.createElement('div');lot.className='lot '+x.district+(x.rare?' rare':'')+(x.wonder?' wonder':'')+(x.water?' waterlot':'');lot.innerHTML='<div class="bldg"></div><span class="tag">'+x.name+'</span>';mapEl.children[x.tile].appendChild(lot)})
+  }
+  function renderLog(){var el=document.getElementById('log');el.innerHTML='';state.logs.forEach(function(x){var d=document.createElement('div');d.className='logitem';d.innerHTML='<small>HAND '+x.round+' · '+x.hand.toUpperCase()+'</small><b>'+x.name+'</b><span>+'+x.gain+' renown</span>';el.appendChild(d)})}
+  function chooseDistrict(id){state.district=id;document.querySelectorAll('.district').forEach(function(b){b.classList.toggle('active',b.dataset.d===id)});document.getElementById('mapNote').textContent='Planning for the '+id+' district'}
+  function showEnding(){var title=state.prosperity>=190?'A legendary river city':state.prosperity>=125?'A thriving regional capital':state.prosperity>=70?'A lively market town':'A close-knit borough';document.getElementById('finalScore').textContent=state.prosperity;document.getElementById('finalTitle').textContent=title;document.getElementById('finalText').textContent=state.people+' townsfolk call it home, with '+state.coins+' coins in the treasury and '+state.buildings.filter(function(b){return b.rare}).length+' rare landmarks.';document.getElementById('ending').showModal()}
+  function reset(){state={round:1,prosperity:0,people:18,coins:24,hand:[],held:[false,false,false,false,false],drawn:false,district:'hearth',buildings:[],logs:[]};freshDeck();chooseDistrict('hearth');renderMap();renderStats();document.getElementById('result').className='result empty';document.getElementById('result').innerHTML='<h3>The council awaits.</h3><p>Every poker hand raises a building. Better hands unlock rarer civic architecture and greater prosperity.</p>';document.getElementById('log').innerHTML='<div class="logitem"><small>CHARTERED</small><b>Riverbend founded</b><span>18 townsfolk · 24 coins</span></div>';newHand()}
+  document.getElementById('mainAction').addEventListener('click',function(){state.drawn?settle():drawCards()});
+  document.getElementById('quickSettle').addEventListener('click',function(){state.drawn=true;settle()});
+  document.querySelectorAll('.district').forEach(function(b){b.addEventListener('click',function(){chooseDistrict(b.dataset.d)})});
+  document.getElementById('help').addEventListener('click',function(){document.getElementById('rules').showModal()});
+  document.querySelectorAll('[data-close]').forEach(function(b){b.addEventListener('click',function(){document.getElementById(b.dataset.close).close()})});
+  document.getElementById('restart').addEventListener('click',reset);document.getElementById('playAgain').addEventListener('click',function(){document.getElementById('ending').close();reset()});
+  freshDeck();renderMap();newHand();renderStats();
+})();
+</script>
+</body>
+</html>
